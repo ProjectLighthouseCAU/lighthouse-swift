@@ -1,7 +1,7 @@
 import Foundation
 
 /// An 'image' to be displayed on the lighthouse.
-public struct Display: Hashable, Encodable {
+public struct Display: Hashable, Codable {
     /// The pixels in row-major order.
     public var pixels: [Color] {
         didSet {
@@ -20,6 +20,23 @@ public struct Display: Hashable, Encodable {
 
     public init() {
         self.init(fill: .black)
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let data = try container.decode(Data.self)
+        assert(data.count % 3 == 0)
+
+        var pixels: [Color] = []
+        for i in 0..<(data.count / 3) {
+            pixels.append(Color(
+                red: data[i * 3],
+                green: data[i * 3 + 1],
+                blue: data[i * 3 + 2]
+            ))
+        }
+
+        self.pixels = pixels
     }
 
     public func encode(to encoder: Encoder) throws {

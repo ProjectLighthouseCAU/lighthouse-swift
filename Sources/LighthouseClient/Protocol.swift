@@ -1,18 +1,27 @@
 public enum Protocol {
-    // TODO: Make payload decodable
-
-    public enum Payload: Encodable {
+    public enum Payload: Codable {
         case display(Display)
+        case other
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if let display = try? container.decode(Display.self) {
+                self = .display(display)
+            } else {
+                self = .other
+            }
+        }
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.singleValueContainer()
             switch self {
                 case .display(let display): try container.encode(display)
+                case .other: break
             }
         }
     }
 
-    public struct ClientMessage: Encodable {
+    public struct ClientMessage: Codable {
         public enum CodingKeys: String, CodingKey {
             case requestId = "REID"
             case verb = "VERB"
@@ -30,21 +39,19 @@ public enum Protocol {
         public let payload: Payload
     }
 
-    public struct ServerMessage: Decodable {
+    public struct ServerMessage: Codable {
         public enum CodingKeys: String, CodingKey {
             case code = "RNUM"
             case requestId = "REID"
             case warnings = "WARNINGS"
             case response = "RESPONSE"
-            // TODO: Add payload
-            // case payload = "PAYLOAD"
+            case payload = "PAYL"
         }
 
         public var code: Int
         public var requestId: Int
         public var warnings: [String]?
         public var response: String?
-        // TODO: Add payload (and handle unknown cases)
-        // public var payload: Payload
+        public var payload: Payload
     }
 }
