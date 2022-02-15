@@ -101,7 +101,7 @@ public class Connection {
     }
 
     /// Adds a listener for generic messages.
-    public func onReceiveMessage(action: @escaping (Protocol.ServerMessage) -> Void) {
+    public func onMessage(action: @escaping (Protocol.ServerMessage) -> Void) {
         messageListeners.append(action)
     }
 

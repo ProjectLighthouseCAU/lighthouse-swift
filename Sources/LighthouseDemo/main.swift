@@ -10,8 +10,14 @@ let auth = Authentication(
 )
 
 func main() async throws {
-    // Connect to the lighthouse server
     let conn = Connection(authentication: auth)
+
+    // Handle incoming messages
+    conn.onMessage { message in
+        print("Got \(message)")
+    }
+
+    // Connect to the lighthouse server
     try await conn.connect()
     print("Connected to the lighthouse")
 
