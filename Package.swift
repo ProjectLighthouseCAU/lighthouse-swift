@@ -12,6 +12,10 @@ let package = Package(
             name: "LighthouseClient",
             targets: ["LighthouseClient"]
         ),
+        .executable(
+            name: "LighthouseDemo",
+            targets: ["LighthouseDemo"]
+        )
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -26,6 +30,12 @@ let package = Package(
             dependencies: [
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "MessagePack", package: "MessagePack"),
+            ]
+        ),
+        .target(
+            name: "LighthouseDemo",
+            dependencies: [
+                .target(name: "LighthouseClient"),
             ]
         ),
         // .testTarget(
