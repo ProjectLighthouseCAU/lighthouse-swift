@@ -12,6 +12,7 @@ public class Connection {
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
     private var inputListeners: [(Protocol.InputEvent) -> Void] = []
+    private var displayListeners: [(Display) -> Void] = []
     private var messageListeners: [(Protocol.ServerMessage) -> Void] = []
     private var dataListeners: [(Data) -> Void] = []
 
@@ -112,17 +113,31 @@ public class Connection {
         }
 
         onMessage { [unowned self] message in
-            if case let .inputEvent(event) = message.payload {
+            switch message.payload {
+            case .inputEvent(let inputEvent):
                 for listener in inputListeners {
-                    listener(event)
+                    listener(inputEvent)
                 }
+            case .display(let display):
+                for listener in displayListeners {
+                    listener(display)
+                }
+            default:
+                break
             }
         }
     }
 
     /// Adds a listener for key/controller input.
+    /// Will only fire if .requestStream() was called.
     public func onInput(action: @escaping (Protocol.InputEvent) -> Void) {
         inputListeners.append(action)
+    }
+
+    /// Adds a listener for displays.
+    /// Will only fire if .requestStream() was called.
+    public func onDisplay(action: @escaping (Display) -> Void) {
+        displayListeners.append(action)
     }
 
     /// Adds a listener for generic messages.
