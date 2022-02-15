@@ -1,13 +1,31 @@
 /// The protocol structures for communication with the lighthouse API.
 public enum Protocol {
+    /// A key/controller input event from the web interface.
+    public struct InputEvent: Codable {
+        public enum CodingKeys: String, CodingKey {
+            case source = "src"
+            case key
+            case button = "btn"
+            case isDown = "dwn"
+        }
+
+        public var source: Int
+        public var key: Int?
+        public var button: Int?
+        public var isDown: Bool
+    }
+
     /// A message payload.
     public enum Payload: Codable {
+        case inputEvent(InputEvent)
         case display(Display)
         case other
 
         public init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
-            if let display = try? container.decode(Display.self) {
+            if let inputEvent = try? container.decode(InputEvent.self) {
+                self = .inputEvent(inputEvent)
+            } else if let display = try? container.decode(Display.self) {
                 self = .display(display)
             } else {
                 self = .other
@@ -18,6 +36,7 @@ public enum Protocol {
             var container = encoder.singleValueContainer()
             switch self {
                 case .display(let display): try container.encode(display)
+                case .inputEvent(let inputEvent): try container.encode(inputEvent)
                 case .other: break
             }
         }
@@ -39,7 +58,7 @@ public enum Protocol {
         public var path: [String]
         public var meta: [String: String] = [:]
         public var authentication: Authentication
-        public let payload: Payload
+        public var payload: Payload? = nil
     }
 
     /// A message originating from the lighthouse server.

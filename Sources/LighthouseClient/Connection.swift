@@ -8,6 +8,7 @@ public class Connection {
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
+    private var inputListeners: [(Protocol.InputEvent) -> Void] = []
     private var messageListeners: [(Protocol.ServerMessage) -> Void] = []
     private var dataListeners: [(Data) -> Void] = []
 
@@ -55,8 +56,13 @@ public class Connection {
         try await send(verb: "PUT", path: ["user", authentication.username, "model"], payload: .display(display))
     }
 
+    /// Requests a stream of events (such as input) from the lighthouse.
+    public func requestStream() async throws {
+        try await send(verb: "STREAM", path: ["user", authentication.username, "model"])
+    }
+
     /// Sends the given request to the lighthouse.
-    public func send(verb: String, path: [String], payload: Protocol.Payload) async throws {
+    public func send(verb: String, path: [String], payload: Protocol.Payload? = nil) async throws {
         try await send(message: Protocol.ClientMessage(
             requestId: nextRequestId(),
             verb: verb,
@@ -103,6 +109,19 @@ public class Connection {
                 print("Error while decoding message: \(error)")
             }
         }
+
+        onMessage { [unowned self] message in
+            if case let .inputEvent(event) = message.payload {
+                for listener in inputListeners {
+                    listener(event)
+                }
+            }
+        }
+    }
+
+    /// Adds a listener for key/controller input.
+    public func onInput(action: @escaping (Protocol.InputEvent) -> Void) {
+        inputListeners.append(action)
     }
 
     /// Adds a listener for generic messages.
