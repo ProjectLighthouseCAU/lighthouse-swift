@@ -64,7 +64,7 @@ public class Connection {
     }
 
     /// Sends the given request to the lighthouse.
-    public func send(verb: String, path: [String], payload: Protocol.Payload? = nil) async throws {
+    public func send(verb: String, path: [String], payload: Protocol.Payload = .other) async throws {
         try await send(message: Protocol.ClientMessage(
             requestId: nextRequestId(),
             verb: verb,

@@ -30,8 +30,7 @@ func main() async throws {
     log.info("Connected to the lighthouse")
 
     // Request a stream of input events
-    // TODO: Debug requestStream
-    // try await conn.requestStream()
+    try await conn.requestStream()
 
     // Repeatedly send colored displays (frames) to the lighthouse
     while true {

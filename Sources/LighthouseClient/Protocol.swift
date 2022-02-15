@@ -37,7 +37,7 @@ public enum Protocol {
             switch self {
                 case .display(let display): try container.encode(display)
                 case .inputEvent(let inputEvent): try container.encode(inputEvent)
-                case .other: break
+                case .other: try container.encodeNil()
             }
         }
     }
@@ -58,7 +58,7 @@ public enum Protocol {
         public var path: [String]
         public var meta: [String: String] = [:]
         public var authentication: Authentication
-        public var payload: Payload? = nil
+        public var payload: Payload = .other
     }
 
     /// A message originating from the lighthouse server.
