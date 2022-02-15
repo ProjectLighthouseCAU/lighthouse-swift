@@ -1,7 +1,10 @@
 import Foundation
+import Logging
 import MessagePack
 import NIO
 import WebSocketKit
+
+private let log = Logger(label: "LighthouseClient.Connection")
 
 /// A connection to the lighthouse server.
 public class Connection {
@@ -38,8 +41,7 @@ public class Connection {
         webSocket.onBinary { [unowned self] (_, buf) in
             var buf = buf
             guard let data = buf.readData(length: buf.readableBytes) else {
-                // TODO: Logging
-                print("Could not read data")
+                log.warning("Could not read data from WebSocket")
                 return
             }
 
@@ -105,8 +107,7 @@ public class Connection {
                     listener(message)
                 }
             } catch {
-                // TODO: Logging
-                print("Error while decoding message: \(error)")
+                log.warning("Error while decoding message: \(error)")
             }
         }
 

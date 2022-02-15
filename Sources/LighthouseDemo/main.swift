@@ -1,6 +1,9 @@
 import Dispatch
 import Foundation
+import Logging
 import LighthouseClient
+
+let log = Logger(label: "LighthouseDemo")
 
 // Fetch credentials from the enviroment
 let env = ProcessInfo.processInfo.environment
@@ -14,17 +17,17 @@ func main() async throws {
 
     // Handle incoming messages
     conn.onMessage { message in
-        print("Got \(message)")
+        log.info("Got \(message)")
     }
 
     // Handle incoming input events
     conn.onInput { input in
-        print("Got input \(input)")
+        log.info("Got input \(input)")
     }
 
     // Connect to the lighthouse server
     try await conn.connect()
-    print("Connected to the lighthouse")
+    log.info("Connected to the lighthouse")
 
     // Request a stream of input events
     // TODO: Debug requestStream
@@ -32,7 +35,7 @@ func main() async throws {
 
     // Repeatedly send colored displays (frames) to the lighthouse
     while true {
-        print("Sending display")
+        log.info("Sending display")
         try await conn.send(display: Display(fill: .random()))
         try await Task.sleep(nanoseconds: 1_000_000_000)
     }

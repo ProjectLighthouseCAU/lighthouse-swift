@@ -21,6 +21,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.3.0"),
         .package(url: "https://github.com/Flight-School/MessagePack.git", from: "1.2.4"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -30,12 +31,14 @@ let package = Package(
             dependencies: [
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "MessagePack", package: "MessagePack"),
+                .product(name: "Logging", package: "swift-log"),
             ]
         ),
         .executableTarget(
             name: "LighthouseDemo",
             dependencies: [
                 .target(name: "LighthouseClient"),
+                .product(name: "Logging", package: "swift-log"),
             ]
         ),
         // .testTarget(
