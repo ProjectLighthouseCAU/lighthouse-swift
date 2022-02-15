@@ -1,12 +1,13 @@
-name: Build
+name: Linux
 
 on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: ['ubuntu-latest', 'macos-latest']
         swift: ['5.5']
 
     steps:

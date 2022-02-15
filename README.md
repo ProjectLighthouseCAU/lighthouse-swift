@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/fwcd/lighthouse-swift/actions/workflows/build.yml/badge.svg)](https://github.com/fwcd/lighthouse-swift/actions/workflows/build.yml)
 
-An API client for a light installation at the University of Kiel using Swift 5.5's async/await.
+An API client for a light installation at the University of Kiel using Swift 5.5's async/await. Runs on both Linux and macOS.
 
 ## Usage
 
