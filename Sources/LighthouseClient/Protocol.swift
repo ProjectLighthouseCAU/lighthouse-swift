@@ -10,11 +10,11 @@ public enum Protocol {
             // case payload = "PAYL"
         }
 
-        public let requestId: Int
-        public let verb: String
-        public let path: [String]
-        public let meta: [String: String]
-        public let authentication: Authentication
+        public var requestId: Int
+        public var verb: String
+        public var path: [String]
+        public var meta: [String: String] = [:]
+        public var authentication: Authentication
         // TODO
         // public let payload: Payload
     }

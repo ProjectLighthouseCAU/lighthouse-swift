@@ -1,4 +1,5 @@
 import Foundation
+import MessagePack
 import NIO
 import WebSocketKit
 
@@ -6,6 +7,8 @@ import WebSocketKit
 public class Connection {
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
+
+    private var requestId: Int = 0
     private var webSocket: WebSocket?
 
     public init(authentication: Authentication) {
@@ -28,9 +31,31 @@ public class Connection {
         }
     }
 
+    /// Sends the given request to the lighthouse.
+    public func sendRequest(verb: String, path: [String]) async throws {
+        try await send(message: Protocol.ClientMessage(
+            requestId: nextRequestId(),
+            verb: verb,
+            path: path,
+            authentication: authentication
+        ))
+    }
+
+    /// Sends a message to the lighthouse.
+    public func send<Message>(message: Message) async throws where Message: Codable {
+        await send(data: try MessagePackEncoder().encode(message))
+    }
+
     /// Sends binary data to the lighthouse.
     public func send(data: Data) async {
         guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
         webSocket.send(Array(data))
+    }
+
+    /// Fetches the next request id for sending.
+    private func nextRequestId() -> Int {
+        let id = requestId
+        requestId += 1
+        return id
     }
 }
