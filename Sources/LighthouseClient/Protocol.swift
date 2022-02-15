@@ -5,8 +5,9 @@ public enum Protocol {
         case display(Display)
 
         public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
             switch self {
-                case .display(let display): try display.encode(to: encoder)
+                case .display(let display): try container.encode(display)
             }
         }
     }

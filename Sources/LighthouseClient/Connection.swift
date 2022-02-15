@@ -68,7 +68,8 @@ public class Connection {
 
     /// Sends a message to the lighthouse.
     public func send<Message>(message: Message) async throws where Message: Encodable {
-        await send(data: try MessagePackEncoder().encode(message))
+        let data = try MessagePackEncoder().encode(message)
+        await send(data: data)
     }
 
     /// Sends binary data to the lighthouse.

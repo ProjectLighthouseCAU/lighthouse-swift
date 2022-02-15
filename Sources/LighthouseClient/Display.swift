@@ -23,7 +23,8 @@ public struct Display: Hashable, Encodable {
     }
 
     public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
         let data = Data(pixels.flatMap { [$0.red, $0.green, $0.blue] })
-        try data.encode(to: encoder)
+        try container.encode(data)
     }
 }
