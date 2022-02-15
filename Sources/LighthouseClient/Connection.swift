@@ -69,13 +69,17 @@ public class Connection {
     /// Sends a message to the lighthouse.
     public func send<Message>(message: Message) async throws where Message: Encodable {
         let data = try MessagePackEncoder().encode(message)
-        await send(data: data)
+        try await send(data: data)
     }
 
     /// Sends binary data to the lighthouse.
-    public func send(data: Data) async {
+    public func send(data: Data) async throws {
         guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
+        #if os(Linux)
+        try await webSocket.send(Array(data))
+        #else
         webSocket.send(Array(data))
+        #endif
     }
 
     /// Fetches the next request id for sending.
