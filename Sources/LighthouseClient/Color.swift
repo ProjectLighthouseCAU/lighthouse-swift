@@ -18,4 +18,12 @@ public struct Color: Codable, Hashable {
         self.green = green
         self.blue = blue
     }
+
+    public static func random() -> Self {
+        Self(
+            red: UInt8.random(in: 0...UInt8.max),
+            green: UInt8.random(in: 0...UInt8.max),
+            blue: UInt8.random(in: 0...UInt8.max)
+        )
+    }
 }

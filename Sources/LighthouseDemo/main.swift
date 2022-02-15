@@ -23,7 +23,7 @@ func main() async throws {
 
     while true {
         print("Sending display")
-        try await conn.send(display: Display(fill: .green))
+        try await conn.send(display: Display(fill: .random()))
         try await Task.sleep(nanoseconds: 1_000_000_000)
     }
 }
