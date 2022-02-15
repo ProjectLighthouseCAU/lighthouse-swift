@@ -28,11 +28,11 @@ let package = Package(
                 .product(name: "MessagePack", package: "MessagePack"),
             ]
         ),
-        .testTarget(
-            name: "LighthouseClientTests",
-            dependencies: [
-                .target(name: "LighthouseClient"),
-            ]
-        ),
+        // .testTarget(
+        //     name: "LighthouseClientTests",
+        //     dependencies: [
+        //         .target(name: "LighthouseClient"),
+        //     ]
+        // ),
     ]
 )
