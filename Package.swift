@@ -32,7 +32,7 @@ let package = Package(
                 .product(name: "MessagePack", package: "MessagePack"),
             ]
         ),
-        .target(
+        .executableTarget(
             name: "LighthouseDemo",
             dependencies: [
                 .target(name: "LighthouseClient"),
