@@ -15,11 +15,6 @@ let auth = Authentication(
 func main() async throws {
     let conn = Connection(authentication: auth)
 
-    // Handle incoming messages
-    conn.onMessage { message in
-        log.info("Got \(message)")
-    }
-
     // Handle incoming input events
     conn.onInput { input in
         log.info("Got input \(input)")
