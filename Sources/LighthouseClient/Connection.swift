@@ -31,18 +31,24 @@ public class Connection {
         }
     }
 
+    /// Sends the given display to the lighthouse.
+    public func send(display: Display) async throws {
+        try await send(verb: "PUT", path: ["user", authentication.username, "model"], payload: .display(display))
+    }
+
     /// Sends the given request to the lighthouse.
-    public func send(verb: String, path: [String]) async throws {
+    public func send(verb: String, path: [String], payload: Protocol.Payload) async throws {
         try await send(message: Protocol.ClientMessage(
             requestId: nextRequestId(),
             verb: verb,
             path: path,
-            authentication: authentication
+            authentication: authentication,
+            payload: payload
         ))
     }
 
     /// Sends a message to the lighthouse.
-    public func send<Message>(message: Message) async throws where Message: Codable {
+    public func send<Message>(message: Message) async throws where Message: Encodable {
         await send(data: try MessagePackEncoder().encode(message))
     }
 

@@ -1,5 +1,7 @@
+import Foundation
+
 /// An 'image' to be displayed on the lighthouse.
-public struct Display: Hashable {
+public struct Display: Hashable, Encodable {
     /// The pixels in row-major order.
     public var pixels: [Color] {
         didSet {
@@ -18,5 +20,10 @@ public struct Display: Hashable {
 
     public init() {
         self.init(fill: .black)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        let data = Data(pixels.flatMap { [$0.red, $0.green, $0.blue] })
+        try data.encode(to: encoder)
     }
 }

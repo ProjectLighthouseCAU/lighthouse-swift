@@ -1,13 +1,24 @@
 public enum Protocol {
-    public struct ClientMessage: Codable {
+    // TODO: Make payload decodable
+
+    public enum Payload: Encodable {
+        case display(Display)
+
+        public func encode(to encoder: Encoder) throws {
+            switch self {
+                case .display(let display): try display.encode(to: encoder)
+            }
+        }
+    }
+
+    public struct ClientMessage: Encodable {
         public enum CodingKeys: String, CodingKey {
             case requestId = "REID"
             case verb = "VERB"
             case path = "PATH"
             case meta = "META"
             case authentication = "AUTH"
-            // TODO
-            // case payload = "PAYL"
+            case payload = "PAYL"
         }
 
         public var requestId: Int
@@ -15,8 +26,7 @@ public enum Protocol {
         public var path: [String]
         public var meta: [String: String] = [:]
         public var authentication: Authentication
-        // TODO
-        // public let payload: Payload
+        public let payload: Payload
     }
 
     // TODO: Add server messages and payloads
