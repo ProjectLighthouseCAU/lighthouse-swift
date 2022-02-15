@@ -13,6 +13,7 @@ let auth = Authentication(
 )
 
 func main() async throws {
+    // Prepare connection
     let conn = Connection(authentication: auth)
 
     // Handle incoming input events
@@ -24,7 +25,7 @@ func main() async throws {
     try await conn.connect()
     log.info("Connected to the lighthouse")
 
-    // Request a stream of input events
+    // Request a stream of events
     try await conn.requestStream()
 
     // Repeatedly send colored displays (frames) to the lighthouse
