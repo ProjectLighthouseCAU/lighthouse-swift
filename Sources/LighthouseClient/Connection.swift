@@ -8,11 +8,15 @@ public class Connection {
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
+    private var messageListeners: [(Protocol.ServerMessage) -> Void] = []
+    private var dataListeners: [(Data) -> Void] = []
+
     private var requestId: Int = 0
     private var webSocket: WebSocket?
 
     public init(authentication: Authentication) {
         self.authentication = authentication
+        setUpListeners()
     }
 
     deinit {
@@ -22,13 +26,28 @@ public class Connection {
 
     /// Connects to the lighthouse.
     public func connect() async throws {
-        webSocket = try await withCheckedThrowingContinuation { continuation in
+        let webSocket = try await withCheckedThrowingContinuation { continuation in
             WebSocket.connect(to: "wss://lighthouse.uni-kiel.de/websocket", on: eventLoopGroup) { ws in
                 continuation.resume(returning: ws)
             }.whenFailure { error in
                 continuation.resume(throwing: error)
             }
         }
+
+        webSocket.onBinary { [unowned self] (_, buf) in
+            var buf = buf
+            guard let data = buf.readData(length: buf.readableBytes) else {
+                // TODO: Logging
+                print("Could not read data")
+                return
+            }
+
+            for listener in dataListeners {
+                listener(data)
+            }
+        } 
+        
+        self.webSocket = webSocket
     }
 
     /// Sends the given display to the lighthouse.
@@ -63,5 +82,31 @@ public class Connection {
         let id = requestId
         requestId += 1
         return id
+    }
+
+    /// Sets up the listeners for received messages.
+    private func setUpListeners() {
+        onData { [unowned self] data in
+            do {
+                let message = try MessagePackDecoder().decode(Protocol.ServerMessage.self, from: data)
+
+                for listener in messageListeners {
+                    listener(message)
+                }
+            } catch {
+                // TODO: Logging
+                print("Error while decoding message: \(error)")
+            }
+        }
+    }
+
+    /// Adds a listener for generic messages.
+    public func onReceiveMessage(action: @escaping (Protocol.ServerMessage) -> Void) {
+        messageListeners.append(action)
+    }
+
+    /// Adds a listener for binary data.
+    private func onData(action: @escaping (Data) -> Void) {
+        dataListeners.append(action)
     }
 }

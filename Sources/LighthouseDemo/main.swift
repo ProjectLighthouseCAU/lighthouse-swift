@@ -1,3 +1,4 @@
+import Dispatch
 import Foundation
 import LighthouseClient
 
@@ -12,10 +13,11 @@ func main() async throws {
     // Connect to the lighthouse server
     let conn = Connection(authentication: auth)
     try await conn.connect()
+    print("Connected to the lighthouse")
 
     while true {
+        print("Sending display")
         try await conn.send(display: Display(fill: .green))
-
         try await Task.sleep(nanoseconds: 1_000_000_000)
     }
 }
@@ -23,3 +25,5 @@ func main() async throws {
 Task {
     try! await main()
 }
+
+dispatchMain()

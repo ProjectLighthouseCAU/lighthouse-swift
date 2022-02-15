@@ -29,5 +29,21 @@ public enum Protocol {
         public let payload: Payload
     }
 
-    // TODO: Add server messages and payloads
+    public struct ServerMessage: Decodable {
+        public enum CodingKeys: String, CodingKey {
+            case code = "RNUM"
+            case requestId = "REID"
+            case warnings = "WARNINGS"
+            case response = "RESPONSE"
+            // TODO: Add payload
+            // case payload = "PAYLOAD"
+        }
+
+        public var code: Int
+        public var requestId: Int
+        public var warnings: [String]?
+        public var response: String?
+        // TODO: Add payload (and handle unknown cases)
+        // public var payload: Payload
+    }
 }
