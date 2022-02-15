@@ -1,4 +1,6 @@
+/// The protocol structures for communication with the lighthouse API.
 public enum Protocol {
+    /// A message payload.
     public enum Payload: Codable {
         case display(Display)
         case other
@@ -21,6 +23,7 @@ public enum Protocol {
         }
     }
 
+    /// A message originating from the lighthouse client.
     public struct ClientMessage: Codable {
         public enum CodingKeys: String, CodingKey {
             case requestId = "REID"
@@ -39,6 +42,7 @@ public enum Protocol {
         public let payload: Payload
     }
 
+    /// A message originating from the lighthouse server.
     public struct ServerMessage: Codable {
         public enum CodingKeys: String, CodingKey {
             case code = "RNUM"
