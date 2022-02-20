@@ -98,7 +98,7 @@ public enum Protocol {
             requestId: Int,
             warnings: [String]? = nil,
             response: String? = nil,
-            payload: Payload
+            payload: Payload = .other
         ) {
             self.code = code
             self.requestId = requestId
