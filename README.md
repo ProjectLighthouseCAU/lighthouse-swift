@@ -41,5 +41,5 @@ export LIGHTHOUSE_TOKEN=[your api token]
 You can now run an example with
 
 ```bash
-swift run
+swift run LighthouseDemo
 ```
