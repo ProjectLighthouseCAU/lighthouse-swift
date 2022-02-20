@@ -56,9 +56,25 @@ public enum Protocol {
         public var requestId: Int
         public var verb: String
         public var path: [String]
-        public var meta: [String: String] = [:]
+        public var meta: [String: String]
         public var authentication: Authentication
-        public var payload: Payload = .other
+        public var payload: Payload
+
+        public init(
+            requestId: Int,
+            verb: String,
+            path: [String],
+            meta: [String: String] = [:],
+            authentication: Authentication,
+            payload: Payload
+        ) {
+            self.requestId = requestId
+            self.verb = verb
+            self.path = path
+            self.meta = meta
+            self.authentication = authentication
+            self.payload = payload
+        }
     }
 
     /// A message originating from the lighthouse server.
@@ -76,5 +92,19 @@ public enum Protocol {
         public var warnings: [String]?
         public var response: String?
         public var payload: Payload
+
+        public init(
+            code: Int,
+            requestId: Int,
+            warnings: [String]? = nil,
+            response: String? = nil,
+            payload: Payload
+        ) {
+            self.code = code
+            self.requestId = requestId
+            self.warnings = warnings
+            self.response = response
+            self.payload = payload
+        }
     }
 }

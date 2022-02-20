@@ -2,6 +2,7 @@ import ArgumentParser
 import Dispatch
 import Foundation
 import Logging
+import LighthouseProtocol
 import LighthouseClient
 
 let log = Logger(label: "LighthouseDemo")

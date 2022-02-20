@@ -7,25 +7,29 @@ An API client for a light installation at the University of Kiel using Swift 5.5
 ## Example
 
 ```swift
-// Prepare connection
-let conn = Connection(authentication: Authentication(
-    username: "[your username]",
-    token: "[your token]"
-))
+import LighthouseClient
 
-// Handle incoming input events
-conn.onInput { input in
-    print("Got input \(input)")
-}
+func runApp() async throws {
+    // Prepare connection
+    let conn = Connection(authentication: Authentication(
+        username: "[your username]",
+        token: "[your token]"
+    ))
 
-// Connect to the lighthouse server and request events
-try await conn.connect()
-try await conn.requestStream()
+    // Handle incoming input events
+    conn.onInput { input in
+        print("Got input \(input)")
+    }
 
-// Repeatedly send colored displays to the lighthouse
-while true {
-    try await conn.send(display: Display(fill: .random()))
-    try await Task.sleep(nanoseconds: 1_000_000_000)
+    // Connect to the lighthouse server and request events
+    try await conn.connect()
+    try await conn.requestStream()
+
+    // Repeatedly send colored displays to the lighthouse
+    while true {
+        try await conn.send(display: Display(fill: .random()))
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+    }
 }
 ```
 

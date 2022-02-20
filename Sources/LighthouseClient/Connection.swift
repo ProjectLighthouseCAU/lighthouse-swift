@@ -3,6 +3,7 @@ import Logging
 import MessagePack
 import NIO
 import WebSocketKit
+import LighthouseProtocol
 
 private let log = Logger(label: "LighthouseClient.Connection")
 
