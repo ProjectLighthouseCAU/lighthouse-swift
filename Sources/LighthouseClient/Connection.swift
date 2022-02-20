@@ -8,6 +8,7 @@ private let log = Logger(label: "LighthouseClient.Connection")
 
 /// A connection to the lighthouse server.
 public class Connection {
+    private let url: URL
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
@@ -19,8 +20,12 @@ public class Connection {
     private var requestId: Int = 0
     private var webSocket: WebSocket?
 
-    public init(authentication: Authentication) {
+    public init(
+        authentication: Authentication,
+        url: URL = lighthouseUrl
+    ) {
         self.authentication = authentication
+        self.url = url
         setUpListeners()
     }
 
@@ -32,7 +37,7 @@ public class Connection {
     /// Connects to the lighthouse.
     public func connect() async throws {
         let webSocket = try await withCheckedThrowingContinuation { continuation in
-            WebSocket.connect(to: "wss://lighthouse.uni-kiel.de/websocket", on: eventLoopGroup) { ws in
+            WebSocket.connect(to: url, on: eventLoopGroup) { ws in
                 continuation.resume(returning: ws)
             }.whenFailure { error in
                 continuation.resume(throwing: error)
