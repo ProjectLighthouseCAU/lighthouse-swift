@@ -1,9 +1,23 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Lighthouse Test Server</title>
+        <title>Lighthouse Test</title>
+        <script crossorigin src="https://unpkg.com/@msgpack/msgpack"></script>
+        <script src="scripts.js"></script>
     </head>
     <body>
-        Test
+        <main>
+            <h1>Lighthouse Test</h1>
+            <form id="auth-form">
+                <fieldset id="auth-form-fieldset">
+                    <input type="text" id="username" placeholder="Username" />
+                    <input type="text" id="token" placeholder="Token" />
+                    <input type="submit" value="Authenticate" />
+                </fieldset>
+            </form>
+            <p>
+                <div id="display"></div>
+            </p>
+        </main>
     </body>
 </html>
