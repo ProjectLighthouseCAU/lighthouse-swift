@@ -43,9 +43,9 @@ let package = Package(
             name: "LighthouseClient",
             dependencies: [
                 .target(name: "LighthouseProtocol"),
-                .product(name: "WebSocketKit", package: "websocket-kit"),
-                .product(name: "MessagePack", package: "MessagePack"),
                 .product(name: "Logging", package: "swift-log"),
+                .product(name: "MessagePack", package: "MessagePack"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
             ]
         ),
         .executableTarget(
@@ -63,6 +63,7 @@ let package = Package(
                 .target(name: "LighthouseProtocol"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
+                .product(name: "MessagePack", package: "MessagePack"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Leaf", package: "leaf"),
             ]
