@@ -28,6 +28,14 @@ class ConnectionHandler {
             ))
         }
 
+        func send(display: Display) throws {
+            try send(message: Protocol.ServerMessage(
+                code: 200,
+                requestId: 0, // TODO: Set this to some value?
+                payload: .display(display)
+            ))
+        }
+
         func send<Message>(message: Message) throws where Message: Encodable {
             let data = try MessagePackEncoder().encode(message)
             send(data: data)
@@ -70,16 +78,21 @@ class ConnectionHandler {
             let name = message.authentication.username
             client.name = name
 
-            switch message.verb {
-            case "PUT":
-                log.info("Got a PUT, forwarding it to others")
-                // TODO
-            case "STREAM":
+            switch (message.verb, message.payload) {
+            case ("PUT", .display(let display)):
+                log.info("Updating \(name)'s display and notifying streaming clients...")
+                client.display = display
+                try client.respond(to: message.requestId, code: 200)
+
+                for rcvClient in clients.values where rcvClient.receivesStream {
+                    try rcvClient.send(display: client.display)
+                }
+            case ("STREAM", _):
                 client.receivesStream = true
                 log.info("Enabled stream for \(name)")
                 try client.respond(to: message.requestId, code: 200)
             default:
-                log.warning("Got unknown verb '\(message.verb)'")
+                log.warning("Got unknown request \(message.verb) with payload \(message.payload)")
                 try client.respond(to: message.requestId, code: 400, response: "Bad Request")
                 break
             }
