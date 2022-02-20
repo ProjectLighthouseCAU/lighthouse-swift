@@ -16,7 +16,7 @@
                 </fieldset>
             </form>
             <p>
-                <div id="display"></div>
+                <canvas id="display"></canvas>
             </p>
         </main>
     </body>
