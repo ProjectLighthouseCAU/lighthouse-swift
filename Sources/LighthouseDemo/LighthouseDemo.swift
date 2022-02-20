@@ -5,21 +5,25 @@ import Logging
 import LighthouseClient
 
 let log = Logger(label: "LighthouseDemo")
-
-// Fetch credentials from the enviroment
 let env = ProcessInfo.processInfo.environment
-let auth = Authentication(
-    username: env["LIGHTHOUSE_USERNAME"]!,
-    token: env["LIGHTHOUSE_TOKEN"]!
-)
 
 @main
 struct LighthouseDemo: ParsableCommand {
-    @Option(name: .shortAndLong, help: "The URL for the Lighthouse server")
+    @Option(name: .shortAndLong, help: "The username for authentication")
+    var username: String = env["LIGHTHOUSE_USERNAME"] ?? ""
+
+    @Option(name: .shortAndLong, help: "The API token for authentication")
+    var token: String = env["LIGHTHOUSE_TOKEN"] ?? ""
+
+    @Option(help: "The URL for the lighthouse server")
     var url: URL = lighthouseUrl
 
     func runAsync() async throws {
+        guard !username.isEmpty else { fatalError("Missing username!") }
+        guard !token.isEmpty else { fatalError("Missing token!") }
+
         // Prepare connection
+        let auth = Authentication(username: username, token: token)
         let conn = Connection(authentication: auth)
 
         // Handle incoming input events
