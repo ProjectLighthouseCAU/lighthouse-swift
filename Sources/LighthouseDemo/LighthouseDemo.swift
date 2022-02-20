@@ -5,8 +5,8 @@ import Logging
 import LighthouseProtocol
 import LighthouseClient
 
-let log = Logger(label: "LighthouseDemo")
-let env = ProcessInfo.processInfo.environment
+private let log = Logger(label: "LighthouseDemo")
+private let env = ProcessInfo.processInfo.environment
 
 @main
 struct LighthouseDemo: ParsableCommand {
@@ -25,7 +25,7 @@ struct LighthouseDemo: ParsableCommand {
 
         // Prepare connection
         let auth = Authentication(username: username, token: token)
-        let conn = Connection(authentication: auth)
+        let conn = Connection(authentication: auth, url: url)
 
         // Handle incoming input events
         conn.onInput { input in
