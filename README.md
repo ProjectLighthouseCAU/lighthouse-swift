@@ -7,38 +7,29 @@ An API client for a light installation at the University of Kiel using Swift 5.5
 ## Example
 
 ```swift
-import LighthouseClient
-import Dispatch
+// Prepare connection
+let conn = Connection(authentication: Authentication(
+    username: "[your username]",
+    token: "[your token]"
+))
 
-func runApp() async throws {
-    // Prepare connection
-    let conn = Connection(authentication: Authentication(
-        username: "[your username]",
-        token: "[your token]"
-    ))
-
-    // Handle incoming input events
-    conn.onInput { input in
-        print("Got input \(input)")
-    }
-
-    // Connect to the lighthouse server and request events
-    try await conn.connect()
-    try await conn.requestStream()
-
-    // Repeatedly send colored displays to the lighthouse
-    while true {
-        try await conn.send(display: Display(fill: .random()))
-        try await Task.sleep(nanoseconds: 1_000_000_000)
-    }
+// Handle incoming input events
+conn.onInput { input in
+    print("Got input \(input)")
 }
 
-Task {
-    try! await runApp()
-}
+// Connect to the lighthouse server and request events
+try await conn.connect()
+try await conn.requestStream()
 
-dispatchMain()
+// Repeatedly send colored displays to the lighthouse
+while true {
+    try await conn.send(display: Display(fill: .random()))
+    try await Task.sleep(nanoseconds: 1_000_000_000)
+}
 ```
+
+For more details, check out the [`LighthouseDemo` source code](Sources/LighthouseDemo/LighthouseDemo.swift).
 
 ## Usage
 
@@ -49,7 +40,7 @@ export LIGHTHOUSE_USERNAME=[your username]
 export LIGHTHOUSE_TOKEN=[your api token]
 ```
 
-You can now run an example with
+Running the example is now as easy as invoking
 
 ```bash
 swift run LighthouseDemo
