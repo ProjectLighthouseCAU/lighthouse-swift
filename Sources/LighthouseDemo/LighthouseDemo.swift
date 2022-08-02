@@ -51,6 +51,13 @@ struct LighthouseDemo: ParsableCommand {
             try! await runAsync()
         }
 
+        // Register interrupt (ctrl-c) handler
+        let source = DispatchSource.makeSignalSource(signal: SIGINT)
+        source.setEventHandler {
+            Self.exit()
+        }
+        source.resume()
+
         dispatchMain()
     }
 }
