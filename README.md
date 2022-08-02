@@ -8,7 +8,6 @@ An API client for a light installation at the University of Kiel using Swift 5.5
 
 ```swift
 import LighthouseClient
-import LighthouseProtocol
 import Dispatch
 
 func runApp() async throws {
