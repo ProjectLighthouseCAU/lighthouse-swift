@@ -47,13 +47,18 @@ struct LighthouseDemo: ParsableCommand {
     }
 
     func run() {
-        Task {
-            try! await runAsync()
+        let task = Task {
+            try await withTaskCancellationHandler {
+                try await runAsync()
+            } onCancel: {
+                log.info("Cancelled")
+            }
         }
 
         // Register interrupt (ctrl-c) handler
         let source = DispatchSource.makeSignalSource(signal: SIGINT)
         source.setEventHandler {
+            task.cancel()
             Self.exit()
         }
         source.resume()
