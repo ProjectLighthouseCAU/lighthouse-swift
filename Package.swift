@@ -10,12 +10,12 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "LighthouseClient",
-            targets: ["LighthouseClient"]
+            targets: ["LighthouseProtocol", "LighthouseClient"]
         ),
         .executable(
             name: "LighthouseDemo",
             targets: ["LighthouseDemo"]
-        )
+        ),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -28,26 +28,28 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
+            name: "LighthouseProtocol",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log"),
+            ]
+        ),
+        .target(
             name: "LighthouseClient",
             dependencies: [
-                .product(name: "WebSocketKit", package: "websocket-kit"),
-                .product(name: "MessagePack", package: "MessagePack"),
+                .target(name: "LighthouseProtocol"),
                 .product(name: "Logging", package: "swift-log"),
+                .product(name: "MessagePack", package: "MessagePack"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
             ]
         ),
         .executableTarget(
             name: "LighthouseDemo",
             dependencies: [
+                .target(name: "LighthouseProtocol"),
                 .target(name: "LighthouseClient"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),
-        // .testTarget(
-        //     name: "LighthouseClientTests",
-        //     dependencies: [
-        //         .target(name: "LighthouseClient"),
-        //     ]
-        // ),
     ]
 )
