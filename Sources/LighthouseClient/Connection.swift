@@ -13,9 +13,9 @@ public class Connection {
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
-    private var inputListeners: [(Protocol.InputEvent) -> Void] = []
+    private var inputListeners: [(InputEvent) -> Void] = []
     private var displayListeners: [(Display) -> Void] = []
-    private var messageListeners: [(Protocol.ServerMessage) -> Void] = []
+    private var messageListeners: [(ServerMessage) -> Void] = []
     private var dataListeners: [(Data) -> Void] = []
 
     private var requestId: Int = 0
@@ -71,8 +71,8 @@ public class Connection {
     }
 
     /// Sends the given request to the lighthouse.
-    public func send(verb: String, path: [String], payload: Protocol.Payload = .other) async throws {
-        try await send(message: Protocol.ClientMessage(
+    public func send(verb: String, path: [String], payload: Payload = .other) async throws {
+        try await send(message: ClientMessage(
             requestId: nextRequestId(),
             verb: verb,
             path: path,
@@ -108,7 +108,7 @@ public class Connection {
     private func setUpListeners() {
         onData { [unowned self] data in
             do {
-                let message = try MessagePackDecoder().decode(Protocol.ServerMessage.self, from: data)
+                let message = try MessagePackDecoder().decode(ServerMessage.self, from: data)
 
                 for listener in messageListeners {
                     listener(message)
@@ -136,7 +136,7 @@ public class Connection {
 
     /// Adds a listener for key/controller input.
     /// Will only fire if .requestStream() was called.
-    public func onInput(action: @escaping (Protocol.InputEvent) -> Void) {
+    public func onInput(action: @escaping (InputEvent) -> Void) {
         inputListeners.append(action)
     }
 
@@ -147,7 +147,7 @@ public class Connection {
     }
 
     /// Adds a listener for generic messages.
-    public func onMessage(action: @escaping (Protocol.ServerMessage) -> Void) {
+    public func onMessage(action: @escaping (ServerMessage) -> Void) {
         messageListeners.append(action)
     }
 
