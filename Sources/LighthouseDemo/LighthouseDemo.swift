@@ -10,7 +10,7 @@ private let env = ProcessInfo.processInfo.environment
 @main
 struct LighthouseDemo: ParsableCommand {
     @Option(name: .shortAndLong, help: "The username for authentication")
-    var username: String = env["LIGHTHOUSE_USERNAME"] ?? ""
+    var username: String = env["LIGHTHOUSE_USER"] ?? ""
 
     @Option(name: .shortAndLong, help: "The API token for authentication")
     var token: String = env["LIGHTHOUSE_TOKEN"] ?? ""
