@@ -16,10 +16,8 @@ public class Lighthouse {
     /// The event loop group on which the WebSocket connection runs.
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
-    private var inputListeners: [(InputEvent) -> Void] = []
-    private var frameListeners: [(Frame) -> Void] = []
-    private var messageListeners: [(ServerMessage) -> Void] = []
-    private var dataListeners: [(Data) -> Void] = []
+    /// The response handlers, keyed by request id.
+    private var responseHandlers: [Int: (ServerMessage) -> Void] = [:]
 
     /// The next request id.
     private var requestId: Int = 0
@@ -32,7 +30,6 @@ public class Lighthouse {
     ) {
         self.authentication = authentication
         self.url = url
-        setUpListeners()
     }
 
     deinit {
@@ -60,8 +57,15 @@ public class Lighthouse {
                 return
             }
 
-            for listener in dataListeners {
-                listener(data)
+            do {
+                let message = try MessagePackDecoder().decode(ServerMessage.self, from: data)
+                if let handler = responseHandlers[message.requestId] {
+                    handler(message)
+                } else {
+                    log.warning("Message left unhandled: \(message.requestId)")
+                }
+            } catch {
+                log.warning("Error while decoding message: \(error)")
             }
         } 
         
@@ -69,34 +73,63 @@ public class Lighthouse {
     }
 
     /// Sends the given frame to the lighthouse.
-    public func send(frame: Frame) async throws {
-        try await send(verb: "PUT", path: ["user", authentication.username, "model"], payload: .frame(frame))
+    public func putModel(frame: Frame) async throws {
+        try await perform(verb: "PUT", path: ["user", authentication.username, "model"], payload: .frame(frame))
+    }
+
+    /// Streams the model.
+    public func streamModel() async throws -> AsyncStream<ServerMessage> {
+        try await stream(path: ["user", authentication.username, "model"])
     }
 
     /// Requests a stream of events (such as input) from the lighthouse.
-    public func requestStream() async throws {
+    public func request() async throws {
         try await send(verb: "STREAM", path: ["user", authentication.username, "model"])
     }
 
-    /// Sends the given request to the lighthouse.
-    public func send(verb: String, path: [String], payload: Payload = .other) async throws {
+    /// Performs a PUT request to the given path.
+    public func put(path: [String], payload: Payload = .other) async throws {
+        try await perform(verb: "PUT", path: path, payload: payload)
+    }
+
+    /// Performs a one-off request to the lighthouse.
+    @discardableResult
+    public func perform(verb: String, path: [String], payload: Payload = .other) async throws -> ServerMessage {
+        precondition(verb != "STREAM", "Lighthouse.perform may only be used for one-off requests, use Lighthouse.stream for streaming!")
+        let requestId = try await send(verb: verb, path: path, payload: payload)
+        let response = await receiveSingle(for: requestId)
+        try response.check()
+        return response
+    }
+
+    /// Performs a streaming request to the lighthouse.
+    public func stream(path: [String], payload: Payload = .other) async throws -> AsyncStream<ServerMessage> {
+        let requestId = try await send(verb: "STREAM", path: path, payload: payload)
+        return receiveStreaming(for: requestId)
+    }
+
+    /// Sends the given request to the lighthouse and reeturns the request id.
+    @discardableResult
+    private func send(verb: String, path: [String], payload: Payload = .other) async throws -> Int {
+        let requestId = nextRequestId()
         try await send(message: ClientMessage(
-            requestId: nextRequestId(),
+            requestId: requestId,
             verb: verb,
             path: path,
             authentication: authentication,
             payload: payload
         ))
+        return requestId
     }
 
     /// Sends a message to the lighthouse.
-    public func send<Message>(message: Message) async throws where Message: Encodable {
+    private func send<Message>(message: Message) async throws where Message: Encodable {
         let data = try MessagePackEncoder().encode(message)
         try await send(data: data)
     }
 
     /// Sends binary data to the lighthouse.
-    public func send(data: Data) async throws {
+    private func send(data: Data) async throws {
         guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
         let promise = eventLoopGroup.next().makePromise(of: Void.self)
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -114,55 +147,25 @@ public class Lighthouse {
         return id
     }
 
-    /// Sets up the listeners for received messages.
-    private func setUpListeners() {
-        onData { [unowned self] data in
-            do {
-                let message = try MessagePackDecoder().decode(ServerMessage.self, from: data)
-
-                for listener in messageListeners {
-                    listener(message)
-                }
-            } catch {
-                log.warning("Error while decoding message: \(error)")
+    /// Receives a stream of responses for the given id.
+    private func receiveStreaming(for requestId: Int) -> AsyncStream<ServerMessage> {
+        AsyncStream { continuation in
+            responseHandlers[requestId] = { message in
+                continuation.yield(message)
             }
-        }
-
-        onMessage { [unowned self] message in
-            switch message.payload {
-            case .inputEvent(let inputEvent):
-                for listener in inputListeners {
-                    listener(inputEvent)
-                }
-            case .frame(let frame):
-                for listener in frameListeners {
-                    listener(frame)
-                }
-            default:
-                break
+            continuation.onTermination = { [weak self] _ in
+                self?.responseHandlers[requestId] = nil
             }
         }
     }
 
-    /// Adds a listener for key/controller input.
-    /// Will only fire if .requestStream() was called.
-    public func onInput(action: @escaping (InputEvent) -> Void) {
-        inputListeners.append(action)
-    }
-
-    /// Adds a listener for frames.
-    /// Will only fire if .requestStream() was called.
-    public func onFrame(action: @escaping (Frame) -> Void) {
-        frameListeners.append(action)
-    }
-
-    /// Adds a listener for generic messages.
-    public func onMessage(action: @escaping (ServerMessage) -> Void) {
-        messageListeners.append(action)
-    }
-
-    /// Adds a listener for binary data.
-    private func onData(action: @escaping (Data) -> Void) {
-        dataListeners.append(action)
+    /// Receives a single response for the given id.
+    private func receiveSingle(for requestId: Int) async -> ServerMessage {
+        await withCheckedContinuation { continuation in
+            responseHandlers[requestId] = { [weak self] message in
+                self?.responseHandlers[requestId] = nil
+                continuation.resume(returning: message)
+            }
+        }
     }
 }
