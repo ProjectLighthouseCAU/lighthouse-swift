@@ -90,11 +90,13 @@ public class Lighthouse {
     /// Sends binary data to the lighthouse.
     public func send(data: Data) async throws {
         guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
-        #if os(Linux)
-        try await webSocket.send(Array(data))
-        #else
-        webSocket.send(Array(data))
-        #endif
+        let promise = eventLoopGroup.next().makePromise(of: Void.self)
+        try await withCheckedThrowingContinuation { continuation in
+            promise.futureResult.whenComplete {
+                continuation.resume(with: $0)
+            }
+            webSocket.send(Array(data), promise: promise)
+        }
     }
 
     /// Fetches the next request id for sending.
