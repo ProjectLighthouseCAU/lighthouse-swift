@@ -9,8 +9,11 @@ private let log = Logger(label: "LighthouseClient.Lighthouse")
 
 /// A connection to the lighthouse server.
 public class Lighthouse {
+    /// The WbeSocket URL of the connected lighthouse server.
     private let url: URL
+    /// The user's authentication credentials.
     private let authentication: Authentication
+    /// The event loop group on which the WebSocket connection runs.
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
     private var inputListeners: [(InputEvent) -> Void] = []
@@ -18,7 +21,9 @@ public class Lighthouse {
     private var messageListeners: [(ServerMessage) -> Void] = []
     private var dataListeners: [(Data) -> Void] = []
 
+    /// The next request id.
     private var requestId: Int = 0
+    /// The WebSocket connection.
     private var webSocket: WebSocket?
 
     public init(
