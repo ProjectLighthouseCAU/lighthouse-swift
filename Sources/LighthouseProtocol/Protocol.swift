@@ -75,6 +75,11 @@ public struct ClientMessage: Codable {
     }
 }
 
+/// An error originating from the server.
+public enum ServerError: Error, Hashable {
+    case serverError(code: Int, message: String?)
+}
+
 /// A message originating from the lighthouse server.
 public struct ServerMessage: Codable {
     public enum CodingKeys: String, CodingKey {
@@ -103,5 +108,12 @@ public struct ServerMessage: Codable {
         self.warnings = warnings
         self.response = response
         self.payload = payload
+    }
+
+    /// Checks this response and returns only if successful.
+    public func check() throws {
+        if code != 200 {
+            throw ServerError.serverError(code: code, message: response)
+        }
     }
 }
