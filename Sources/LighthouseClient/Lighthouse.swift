@@ -31,8 +31,11 @@ public class Lighthouse {
     }
 
     deinit {
-        try! webSocket?.close().wait()
-        try! eventLoopGroup.syncShutdownGracefully()
+        _ = webSocket?.close()
+        eventLoopGroup.shutdownGracefully { error in
+            guard let error = error else { return }
+            log.error("Error while shutting down event loop group: \(error)")
+        }
     }
 
     /// Connects to the lighthouse.
