@@ -99,7 +99,7 @@ public class Lighthouse {
     public func send(data: Data) async throws {
         guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
         let promise = eventLoopGroup.next().makePromise(of: Void.self)
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             promise.futureResult.whenComplete {
                 continuation.resume(with: $0)
             }
