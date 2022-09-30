@@ -1,7 +1,7 @@
 import Foundation
 
-/// An 'image' to be displayed on the lighthouse.
-public struct Display: Hashable, Codable {
+/// An 'image' to be frameed on the lighthouse.
+public struct Frame: Hashable, Codable {
     /// The pixels in row-major order.
     public var pixels: [Color] {
         didSet {

@@ -23,9 +23,9 @@ lh.onInput { input in
 try await lh.connect()
 try await lh.requestStream()
 
-// Repeatedly send colored displays to the lighthouse
+// Repeatedly send colored frames to the lighthouse
 while true {
-    try await lh.send(display: Display(fill: .random()))
+    try await lh.send(frame: Frame(fill: .random()))
     try await Task.sleep(nanoseconds: 1_000_000_000)
 }
 ```

@@ -38,10 +38,10 @@ struct LighthouseDemo: ParsableCommand {
         // Request a stream of events
         try await lh.requestStream()
 
-        // Repeatedly send colored displays (frames) to the lighthouse
+        // Repeatedly send colored frames to the lighthouse
         while true {
-            log.info("Sending display")
-            try await lh.send(display: Display(fill: .random()))
+            log.info("Sending frame")
+            try await lh.send(frame: Frame(fill: .random()))
             try await Task.sleep(nanoseconds: 1_000_000_000)
         }
     }

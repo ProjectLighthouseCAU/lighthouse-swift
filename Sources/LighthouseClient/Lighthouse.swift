@@ -14,7 +14,7 @@ public class Lighthouse {
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
     private var inputListeners: [(InputEvent) -> Void] = []
-    private var displayListeners: [(Display) -> Void] = []
+    private var frameListeners: [(Frame) -> Void] = []
     private var messageListeners: [(ServerMessage) -> Void] = []
     private var dataListeners: [(Data) -> Void] = []
 
@@ -60,9 +60,9 @@ public class Lighthouse {
         self.webSocket = webSocket
     }
 
-    /// Sends the given display to the lighthouse.
-    public func send(display: Display) async throws {
-        try await send(verb: "PUT", path: ["user", authentication.username, "model"], payload: .display(display))
+    /// Sends the given frame to the lighthouse.
+    public func send(frame: Frame) async throws {
+        try await send(verb: "PUT", path: ["user", authentication.username, "model"], payload: .frame(frame))
     }
 
     /// Requests a stream of events (such as input) from the lighthouse.
@@ -124,9 +124,9 @@ public class Lighthouse {
                 for listener in inputListeners {
                     listener(inputEvent)
                 }
-            case .display(let display):
-                for listener in displayListeners {
-                    listener(display)
+            case .frame(let frame):
+                for listener in frameListeners {
+                    listener(frame)
                 }
             default:
                 break
@@ -140,10 +140,10 @@ public class Lighthouse {
         inputListeners.append(action)
     }
 
-    /// Adds a listener for displays.
+    /// Adds a listener for frames.
     /// Will only fire if .requestStream() was called.
-    public func onDisplay(action: @escaping (Display) -> Void) {
-        displayListeners.append(action)
+    public func onFrame(action: @escaping (Frame) -> Void) {
+        frameListeners.append(action)
     }
 
     /// Adds a listener for generic messages.
