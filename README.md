@@ -9,23 +9,23 @@ An API client for a light installation at the University of Kiel using Swift 5.5
 
 ```swift
 // Prepare connection
-let conn = Connection(authentication: Authentication(
+let lh = Lighthouse(authentication: Authentication(
     username: "[your username]",
     token: "[your token]"
 ))
 
 // Handle incoming input events
-conn.onInput { input in
+lh.onInput { input in
     print("Got input \(input)")
 }
 
 // Connect to the lighthouse server and request events
-try await conn.connect()
-try await conn.requestStream()
+try await lh.connect()
+try await lh.requestStream()
 
 // Repeatedly send colored displays to the lighthouse
 while true {
-    try await conn.send(display: Display(fill: .random()))
+    try await lh.send(display: Display(fill: .random()))
     try await Task.sleep(nanoseconds: 1_000_000_000)
 }
 ```

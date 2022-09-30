@@ -5,10 +5,10 @@ import NIO
 import WebSocketKit
 import LighthouseProtocol
 
-private let log = Logger(label: "LighthouseClient.Connection")
+private let log = Logger(label: "LighthouseClient.Lighthouse")
 
 /// A connection to the lighthouse server.
-public class Connection {
+public class Lighthouse {
     private let url: URL
     private let authentication: Authentication
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)

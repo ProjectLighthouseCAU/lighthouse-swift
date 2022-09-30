@@ -24,24 +24,24 @@ struct LighthouseDemo: ParsableCommand {
 
         // Prepare connection
         let auth = Authentication(username: username, token: token)
-        let conn = Connection(authentication: auth, url: url)
+        let lh = Lighthouse(authentication: auth, url: url)
 
         // Handle incoming input events
-        conn.onInput { input in
+        lh.onInput { input in
             log.info("Got input \(input)")
         }
 
         // Connect to the lighthouse server
-        try await conn.connect()
+        try await lh.connect()
         log.info("Connected to the lighthouse")
 
         // Request a stream of events
-        try await conn.requestStream()
+        try await lh.requestStream()
 
         // Repeatedly send colored displays (frames) to the lighthouse
         while true {
             log.info("Sending display")
-            try await conn.send(display: Display(fill: .random()))
+            try await lh.send(display: Display(fill: .random()))
             try await Task.sleep(nanoseconds: 1_000_000_000)
         }
     }
