@@ -82,11 +82,6 @@ public class Lighthouse {
         try await stream(path: ["user", authentication.username, "model"])
     }
 
-    /// Requests a stream of events (such as input) from the lighthouse.
-    public func request() async throws {
-        try await send(verb: "STREAM", path: ["user", authentication.username, "model"])
-    }
-
     /// Performs a PUT request to the given path.
     public func put(path: [String], payload: Payload = .other) async throws {
         try await perform(verb: "PUT", path: path, payload: payload)
