@@ -3,7 +3,7 @@
 [![Build](https://github.com/ProjectLighthouseCAU/lighthouse-swift/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectLighthouseCAU/lighthouse-swift/actions/workflows/build.yml)
 [![Docs](https://github.com/ProjectLighthouseCAU/lighthouse-swift/actions/workflows/docs.yml/badge.svg)](https://projectlighthousecau.github.io/lighthouse-swift/documentation/lighthouseclient)
 
-An API client for a light installation at the University of Kiel using Swift 5.5's async/await. Runs on both Linux and macOS.
+An API client for a light installation at the University of Kiel using Swift's async/await. Runs on both Linux and macOS.
 
 ## Example
 
