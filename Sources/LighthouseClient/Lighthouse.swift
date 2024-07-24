@@ -122,7 +122,7 @@ public class Lighthouse {
 
     /// Sends the given frame to the lighthouse.
     public func putModel(frame: Frame) async throws {
-        try await perform(verb: "PUT", path: ["user", authentication.username, "model"], payload: .frame(frame))
+        try await perform(verb: .put, path: ["user", authentication.username, "model"], payload: .frame(frame))
     }
 
     /// Streams the model.
@@ -132,13 +132,13 @@ public class Lighthouse {
 
     /// Performs a PUT request to the given path.
     public func put(path: [String], payload: Payload = .other) async throws {
-        try await perform(verb: "PUT", path: path, payload: payload)
+        try await perform(verb: .put, path: path, payload: payload)
     }
 
     /// Performs a one-off request to the lighthouse.
     @discardableResult
-    public func perform(verb: String, path: [String], payload: Payload = .other) async throws -> ServerMessage {
-        precondition(verb != "STREAM", "Lighthouse.perform may only be used for one-off requests, use Lighthouse.stream for streaming!")
+    public func perform(verb: Verb, path: [String], payload: Payload = .other) async throws -> ServerMessage {
+        precondition(verb != .stream, "Lighthouse.perform may only be used for one-off requests, use Lighthouse.stream for streaming!")
         let requestId = try await send(verb: verb, path: path, payload: payload)
         let response = await receiveSingle(for: requestId)
         try response.check()
@@ -147,13 +147,13 @@ public class Lighthouse {
 
     /// Performs a streaming request to the lighthouse.
     public func stream(path: [String], payload: Payload = .other) async throws -> AsyncStream<ServerMessage> {
-        let requestId = try await send(verb: "STREAM", path: path, payload: payload)
+        let requestId = try await send(verb: .stream, path: path, payload: payload)
         return receiveStreaming(for: requestId)
     }
 
     /// Sends the given request to the lighthouse and reeturns the request id.
     @discardableResult
-    private func send(verb: String, path: [String], payload: Payload = .other) async throws -> Int {
+    private func send(verb: Verb, path: [String], payload: Payload = .other) async throws -> Int {
         let requestId = nextRequestId()
         try await send(message: ClientMessage(
             requestId: requestId,

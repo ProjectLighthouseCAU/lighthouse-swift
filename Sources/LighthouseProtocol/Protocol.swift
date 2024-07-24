@@ -52,7 +52,7 @@ public struct ClientMessage: Codable {
     }
 
     public var requestId: Int
-    public var verb: String
+    public var verb: Verb
     public var path: [String]
     public var meta: [String: String]
     public var authentication: Authentication
@@ -60,7 +60,7 @@ public struct ClientMessage: Codable {
 
     public init(
         requestId: Int,
-        verb: String,
+        verb: Verb,
         path: [String],
         meta: [String: String] = [:],
         authentication: Authentication,
