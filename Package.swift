@@ -52,5 +52,11 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),
+        .testTarget(
+            name: "LighthouseProtocolTests",
+            dependencies: [
+                .target(name: "LighthouseProtocol"),
+            ]
+        ),
     ]
 )

@@ -22,5 +22,5 @@ jobs:
         swift-version: ${{ matrix.swift }}
     - name: Build
       run: swift build
-    # - name: Test
-    #   run: swift test
+    - name: Test
+      run: swift test
