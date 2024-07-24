@@ -8,14 +8,17 @@ public struct DirectoryTree: Hashable, RawRepresentable {
         rawValue.count
     }
 
+    /// Creates a directory tree from the given entries.
     public init(rawValue: [String: Entry] = [:]) {
         self.rawValue = rawValue
     }
 
+    /// Creates a directory tree from the given entries.
     public init(_ rawValue: [String: Entry]) {
         self.init(rawValue: rawValue)
     }
 
+    /// Accesses the child entry with the given name.
     public subscript(_ name: String) -> Entry? {
         get { rawValue[name] }
         set { rawValue[name] = newValue }
@@ -23,6 +26,7 @@ public struct DirectoryTree: Hashable, RawRepresentable {
 }
 
 extension DirectoryTree {
+    /// An entry in the directory. Either a resource or a directory tree.
     public enum Entry: Codable, Hashable, CustomStringConvertible, ExpressibleByDictionaryLiteral {
         case resource
         case directory(DirectoryTree)
