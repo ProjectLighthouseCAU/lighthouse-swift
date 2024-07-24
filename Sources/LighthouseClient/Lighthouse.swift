@@ -184,7 +184,7 @@ public class Lighthouse {
     /// Performs a `GET` request to the given path.
     /// 
     /// This fetches the resource at the given path. Requires `READ` permission.
-    public func get<ResponsePayload>(path: [String]) async throws -> ServerMessage<ResponsePayload>
+    public func get<ResponsePayload>(path: [String], as type: ResponsePayload.Type) async throws -> ServerMessage<ResponsePayload>
     where ResponsePayload: Decodable {
         try await perform(verb: .get, path: path)
     }
