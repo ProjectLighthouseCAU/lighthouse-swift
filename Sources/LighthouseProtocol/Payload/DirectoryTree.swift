@@ -23,9 +23,16 @@ public struct DirectoryTree: Hashable, RawRepresentable {
 }
 
 extension DirectoryTree {
-    public enum Entry: Codable, Hashable {
+    public enum Entry: Codable, Hashable, CustomStringConvertible, ExpressibleByDictionaryLiteral {
         case resource
         case directory(DirectoryTree)
+
+        public var description: String {
+            switch self {
+            case .resource: ".resource"
+            case .directory(let tree): String(describing: tree)
+            }
+        }
 
         public init(from decoder: any Decoder) throws {
             let container = try decoder.singleValueContainer()
@@ -35,6 +42,10 @@ extension DirectoryTree {
                 let tree = try container.decode(DirectoryTree.self)
                 self = .directory(tree)
             }
+        }
+
+        public init(dictionaryLiteral elements: (String, Entry)...) {
+            self = .directory(DirectoryTree(Dictionary(uniqueKeysWithValues: elements)))
         }
 
         public func encode(to encoder: any Encoder) throws {
@@ -47,6 +58,12 @@ extension DirectoryTree {
                 try container.encode(tree)
             }
         }
+    }
+}
+
+extension DirectoryTree: CustomStringConvertible {
+    public var description: String {
+        String(describing: rawValue)
     }
 }
 

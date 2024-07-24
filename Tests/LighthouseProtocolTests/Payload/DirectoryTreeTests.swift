@@ -8,12 +8,12 @@ final class DirectoryTreeTests: XCTestCase {
         try XCTAssertEqual(encode([:]), "{}")
         try XCTAssertEqual(encode(["a": .resource]), #"{"a":null}"#)
         try XCTAssertEqual(encode(["a": .resource]), #"{"a":null}"#)
-        try XCTAssertEqual(encode(["b": .directory(["a": .resource])]), #"{"b":{"a":null}}"#)
+        try XCTAssertEqual(encode(["b": ["a": .resource]]), #"{"b":{"a":null}}"#)
 
         assertRoundtrips([:])
         assertRoundtrips(["a": .resource])
         assertRoundtrips(["a": .resource, "b": .resource])
-        assertRoundtrips(["a": .directory(["b": .resource, "c": .directory([:])]), "b": .resource])
+        assertRoundtrips(["a": ["b": .resource, "c": [:]], "b": .resource])
     }
 
     private func encode(_ value: DirectoryTree) throws -> String {
