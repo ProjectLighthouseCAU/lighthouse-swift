@@ -1,9 +1,8 @@
 import Foundation
 import Logging
 import MessagePack
-import NIO
-import WebSocketKit
 import LighthouseProtocol
+import LighthouseWebSocket
 
 private let log = Logger(label: "LighthouseClient.Lighthouse")
 
@@ -50,12 +49,8 @@ private let log = Logger(label: "LighthouseClient.Lighthouse")
 /// }
 /// ```
 public class Lighthouse {
-    /// The WebSocket URL of the connected lighthouse server.
-    private let url: URL
     /// The user's authentication credentials.
     private let authentication: Authentication
-    /// The event loop group on which the WebSocket connection runs.
-    private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
     /// The response handlers, keyed by request id.
     private var responseHandlers: [Int: (Data) throws -> Void] = [:]
@@ -63,7 +58,7 @@ public class Lighthouse {
     /// The next request id.
     private var requestId: Int = 0
     /// The WebSocket connection.
-    private var webSocket: WebSocket?
+    private var webSocket: WebSocket
 
     /// Instantiates the ``Lighthouse`` wrapper with the given credentials and
     /// URL.
@@ -75,36 +70,16 @@ public class Lighthouse {
         url: URL = lighthouseUrl
     ) {
         self.authentication = authentication
-        self.url = url
-    }
-
-    deinit {
-        _ = webSocket?.close()
-        eventLoopGroup.shutdownGracefully { error in
-            guard let error = error else { return }
-            log.error("Error while shutting down event loop group: \(error)")
-        }
+        webSocket = WebSocket(url: url)
     }
 
     /// Connects to the lighthouse.
     ///
     /// This uses the previously provided authentication credentials and URL.
     public func connect() async throws {
-        let webSocket = try await withCheckedThrowingContinuation { continuation in
-            WebSocket.connect(to: url, on: eventLoopGroup) { ws in
-                continuation.resume(returning: ws)
-            }.whenFailure { error in
-                continuation.resume(throwing: error)
-            }
-        }
+        try await webSocket.connect()
 
-        webSocket.onBinary { [unowned self] (_, buf) in
-            var buf = buf
-            guard let data = buf.readData(length: buf.readableBytes) else {
-                log.warning("Could not read data from WebSocket")
-                return
-            }
-
+        try webSocket.onBinary { [unowned self] data in
             do {
                 let envelope = try MessagePackDecoder().decode(ServerMessage<Nil>.self, from: data)
                 if let handler = responseHandlers[envelope.requestId] {
@@ -116,8 +91,6 @@ public class Lighthouse {
                 log.warning("Error while decoding message: \(error)")
             }
         } 
-        
-        self.webSocket = webSocket
     }
 
     /// Sends the given frame to the lighthouse.
@@ -267,14 +240,7 @@ public class Lighthouse {
 
     /// Sends binary data to the lighthouse.
     private func send(data: Data) async throws {
-        guard let webSocket = webSocket else { fatalError("Please call .connect() before sending data!") }
-        let promise = eventLoopGroup.next().makePromise(of: Void.self)
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            promise.futureResult.whenComplete {
-                continuation.resume(with: $0)
-            }
-            webSocket.send(Array(data), promise: promise)
-        }
+        try await webSocket.send(data)
     }
 
     /// Fetches the next request id for sending.

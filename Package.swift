@@ -20,6 +20,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.3.0"),
+        .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.8"),
         .package(url: "https://github.com/Flight-School/MessagePack.git", from: "1.2.4"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.0.3"),
@@ -35,12 +36,19 @@ let package = Package(
             ]
         ),
         .target(
+            name: "LighthouseWebSocket",
+            dependencies: [
+                .product(name: "WebSocketKit", package: "websocket-kit", condition: .when(platforms: [.android, .linux, .macOS, .openbsd, .wasi, .windows])),
+                .product(name: "Starscream", package: "Starscream", condition: .when(platforms: [.iOS, .macCatalyst, .tvOS, .visionOS, .watchOS])),
+            ]
+        ),
+        .target(
             name: "LighthouseClient",
             dependencies: [
                 .target(name: "LighthouseProtocol"),
+                .target(name: "LighthouseWebSocket"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "MessagePack", package: "MessagePack"),
-                .product(name: "WebSocketKit", package: "websocket-kit"),
             ]
         ),
         .executableTarget(
