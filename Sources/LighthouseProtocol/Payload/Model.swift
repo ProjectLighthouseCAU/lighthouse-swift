@@ -1,5 +1,5 @@
-/// A message payload.
-public enum Payload: Codable {
+/// The payload of a model message.
+public enum Model: Codable {
     case inputEvent(InputEvent)
     case frame(Frame)
     case other

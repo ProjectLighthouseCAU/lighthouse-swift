@@ -1,5 +1,5 @@
 /// A message originating from the lighthouse client.
-public struct ClientMessage: Codable {
+public struct ClientMessage<Payload> {
     public enum CodingKeys: String, CodingKey {
         case requestId = "REID"
         case verb = "VERB"
@@ -32,3 +32,27 @@ public struct ClientMessage: Codable {
         self.payload = payload
     }
 }
+
+extension ClientMessage where Payload == () {
+    public init(
+        requestId: Int,
+        verb: Verb,
+        path: [String],
+        meta: [String: String] = [:],
+        authentication: Authentication
+    ) {
+        self.init(
+            requestId: requestId,
+            verb: verb,
+            path: path,
+            meta: meta,
+            authentication: authentication,
+            payload: ()
+        )
+    }
+}
+
+extension ClientMessage: Equatable where Payload: Equatable {}
+extension ClientMessage: Hashable where Payload: Hashable {}
+extension ClientMessage: Encodable where Payload: Encodable {}
+extension ClientMessage: Decodable where Payload: Decodable {}

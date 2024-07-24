@@ -1,5 +1,5 @@
 /// A message originating from the lighthouse server.
-public struct ServerMessage: Codable {
+public struct ServerMessage<Payload> {
     public enum CodingKeys: String, CodingKey {
         case code = "RNUM"
         case requestId = "REID"
@@ -19,7 +19,7 @@ public struct ServerMessage: Codable {
         requestId: Int,
         warnings: [String]? = nil,
         response: String? = nil,
-        payload: Payload = .other
+        payload: Payload
     ) {
         self.code = code
         self.requestId = requestId
@@ -35,3 +35,25 @@ public struct ServerMessage: Codable {
         }
     }
 }
+
+extension ServerMessage where Payload == () {
+    public init(
+        code: Int,
+        requestId: Int,
+        warnings: [String]? = nil,
+        response: String? = nil
+    ) {
+        self.init(
+            code: code,
+            requestId: requestId,
+            warnings: warnings,
+            response: response,
+            payload: ()
+        )
+    }
+}
+
+extension ServerMessage: Equatable where Payload: Equatable {}
+extension ServerMessage: Hashable where Payload: Hashable {}
+extension ServerMessage: Encodable where Payload: Encodable {}
+extension ServerMessage: Decodable where Payload: Decodable {}

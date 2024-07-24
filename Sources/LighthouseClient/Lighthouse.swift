@@ -58,7 +58,7 @@ public class Lighthouse {
     private let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
 
     /// The response handlers, keyed by request id.
-    private var responseHandlers: [Int: (ServerMessage) -> Void] = [:]
+    private var responseHandlers: [Int: (Data) throws -> Void] = [:]
 
     /// The next request id.
     private var requestId: Int = 0
@@ -106,11 +106,11 @@ public class Lighthouse {
             }
 
             do {
-                let message = try MessagePackDecoder().decode(ServerMessage.self, from: data)
-                if let handler = responseHandlers[message.requestId] {
-                    handler(message)
+                let envelope = try MessagePackDecoder().decode(ServerMessage<Nil>.self, from: data)
+                if let handler = responseHandlers[envelope.requestId] {
+                    try handler(data)
                 } else {
-                    log.warning("Message left unhandled: \(message.requestId)")
+                    log.warning("Message left unhandled: \(envelope.requestId)")
                 }
             } catch {
                 log.warning("Error while decoding message: \(error)")
@@ -121,12 +121,13 @@ public class Lighthouse {
     }
 
     /// Sends the given frame to the lighthouse.
-    public func putModel(frame: Frame) async throws {
-        try await perform(verb: .put, path: ["user", authentication.username, "model"], payload: .frame(frame))
+    @discardableResult
+    public func putModel(frame: Frame) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .put, path: ["user", authentication.username, "model"], payload: Model.frame(frame))
     }
 
     /// Streams the current user's model.
-    public func streamModel() async throws -> AsyncStream<ServerMessage> {
+    public func streamModel() async throws -> AsyncStream<ServerMessage<Model>> {
         try await stream(path: ["user", authentication.username, "model"])
     }
 
@@ -134,59 +135,82 @@ public class Lighthouse {
     ///
     /// This creates and updates the resource at the given path, effectively
     /// combining `PUT` and `CREATE`. Requires `CREATE` and `WRITE` permission.
-    public func post(path: [String], payload: Payload = .other) async throws {
+    @discardableResult
+    public func post<Payload>(path: [String], payload: Payload) async throws -> ServerMessage<Nil>
+    where Payload: Encodable {
         try await perform(verb: .post, path: path, payload: payload)
     }
 
     /// Performs a `PUT` request to the given path.
     ///
     /// This updates the resource at the given path with the given payload.
-    public func put(path: [String], payload: Payload = .other) async throws {
+    @discardableResult
+    public func put<Payload>(path: [String], payload: Payload) async throws -> ServerMessage<Nil>
+    where Payload: Encodable {
         try await perform(verb: .put, path: path, payload: payload)
     }
 
     /// Performs a `CREATE` request to the given path.
     /// 
     /// This creates a resource at the given path. Requires `CREATE` permission.
-    public func create(path: [String]) async throws {
-        try await perform(verb: .create, path: path, payload: .other)
+    @discardableResult
+    public func create(path: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .create, path: path)
     }
 
     /// Performs a `DELETE` request to the given path.
     /// 
     /// This deletes the resource at the given path. Requires `DELETE` permission.
-    public func delete(path: [String]) async throws {
-        try await perform(verb: .delete, path: path, payload: .other)
+    @discardableResult
+    public func delete(path: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .delete, path: path)
     }
 
     /// Performs a `MKDIR` request to the given path.
     /// 
     /// This creates a directory at the given path. Requires `CREATE` permission.
-    public func mkdir(path: [String]) async throws {
-        try await perform(verb: .mkdir, path: path, payload: .other)
+    @discardableResult
+    public func mkdir(path: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .mkdir, path: path)
     }
 
     // TODO: `LIST`, `GET`, `LINK`, `UNLINK`, `STOP` wrappers
 
+    /// Performs a one-off request to the lighthouse with an empty payload.
+    @discardableResult
+    public func perform<ResponsePayload>(verb: Verb, path: [String]) async throws -> ServerMessage<ResponsePayload>
+    where ResponsePayload: Decodable {
+        try await perform(verb: verb, path: path, payload: Nil())
+    }
+
     /// Performs a one-off request to the lighthouse.
     @discardableResult
-    public func perform(verb: Verb, path: [String], payload: Payload = .other) async throws -> ServerMessage {
+    public func perform<Payload, ResponsePayload>(verb: Verb, path: [String], payload: Payload) async throws -> ServerMessage<ResponsePayload>
+    where Payload: Encodable, ResponsePayload: Decodable {
         precondition(verb != .stream, "Lighthouse.perform may only be used for one-off requests, use Lighthouse.stream for streaming!")
         let requestId = try await send(verb: verb, path: path, payload: payload)
-        let response = await receiveSingle(for: requestId)
+        let response = await receiveSingle(for: requestId, as: ResponsePayload.self)
         try response.check()
         return response
     }
 
+    /// Performs a streaming request to the lighthouse with an empty payload.
+    public func stream<ResponsePayload>(path: [String]) async throws -> AsyncStream<ServerMessage<ResponsePayload>>
+    where ResponsePayload: Decodable {
+        try await stream(path: path, payload: Nil())
+    }
+
     /// Performs a streaming request to the lighthouse.
-    public func stream(path: [String], payload: Payload = .other) async throws -> AsyncStream<ServerMessage> {
+    public func stream<Payload, ResponsePayload>(path: [String], payload: Payload) async throws -> AsyncStream<ServerMessage<ResponsePayload>>
+    where Payload: Encodable, ResponsePayload: Decodable {
         let requestId = try await send(verb: .stream, path: path, payload: payload)
-        return receiveStreaming(for: requestId)
+        return receiveStreaming(for: requestId, as: ResponsePayload.self)
     }
 
     /// Sends the given request to the lighthouse and reeturns the request id.
     @discardableResult
-    private func send(verb: Verb, path: [String], payload: Payload = .other) async throws -> Int {
+    private func send<Payload>(verb: Verb, path: [String], payload: Payload) async throws -> Int
+    where Payload: Encodable {
         let requestId = nextRequestId()
         try await send(message: ClientMessage(
             requestId: requestId,
@@ -224,9 +248,11 @@ public class Lighthouse {
     }
 
     /// Receives a stream of responses for the given id.
-    private func receiveStreaming(for requestId: Int) -> AsyncStream<ServerMessage> {
+    private func receiveStreaming<ResponsePayload>(for requestId: Int, as type: ResponsePayload.Type) -> AsyncStream<ServerMessage<ResponsePayload>>
+    where ResponsePayload: Decodable {
         AsyncStream { continuation in
-            responseHandlers[requestId] = { message in
+            responseHandlers[requestId] = { data in
+                let message = try MessagePackDecoder().decode(ServerMessage<ResponsePayload>.self, from: data)
                 continuation.yield(message)
             }
             continuation.onTermination = { [weak self] _ in
@@ -236,9 +262,11 @@ public class Lighthouse {
     }
 
     /// Receives a single response for the given id.
-    private func receiveSingle(for requestId: Int) async -> ServerMessage {
+    private func receiveSingle<ResponsePayload>(for requestId: Int, as type: ResponsePayload.Type) async -> ServerMessage<ResponsePayload>
+    where ResponsePayload: Decodable {
         await withCheckedContinuation { continuation in
-            responseHandlers[requestId] = { [weak self] message in
+            responseHandlers[requestId] = { [weak self] data in
+                let message = try MessagePackDecoder().decode(ServerMessage<ResponsePayload>.self, from: data)
                 self?.responseHandlers[requestId] = nil
                 continuation.resume(returning: message)
             }
