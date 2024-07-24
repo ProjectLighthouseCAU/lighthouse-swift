@@ -9,7 +9,7 @@ private let log = Logger(label: "LighthouseClient.Lighthouse")
 
 /// A connection to the lighthouse server.
 public class Lighthouse {
-    /// The WbeSocket URL of the connected lighthouse server.
+    /// The WebSocket URL of the connected lighthouse server.
     private let url: URL
     /// The user's authentication credentials.
     private let authentication: Authentication
