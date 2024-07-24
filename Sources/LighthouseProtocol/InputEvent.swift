@@ -11,4 +11,16 @@ public struct InputEvent: Codable {
     public var key: Int?
     public var button: Int?
     public var isDown: Bool
+
+    public init(
+        source: Int,
+        key: Int? = nil,
+        button: Int? = nil,
+        isDown: Bool
+    ) {
+        self.source = source
+        self.key = key
+        self.button = button
+        self.isDown = isDown
+    }
 }
