@@ -174,7 +174,44 @@ public class Lighthouse {
         try await perform(verb: .mkdir, path: path)
     }
 
-    // TODO: `LIST`, `GET`, `LINK`, `UNLINK`, `STOP` wrappers
+    /// Performs a `LIST` request to the given path.
+    /// 
+    /// This lists the directory at the given path. Requires `READ` permission.
+    public func list(path: [String]) async throws -> ServerMessage<DirectoryTree> {
+        try await perform(verb: .list, path: path)
+    }
+
+    /// Performs a `GET` request to the given path.
+    /// 
+    /// This fetches the resource at the given path. Requires `READ` permission.
+    public func get<ResponsePayload>(path: [String]) async throws -> ServerMessage<ResponsePayload>
+    where ResponsePayload: Decodable {
+        try await perform(verb: .get, path: path)
+    }
+
+    /// Performs a `LINK` request to the given paths.
+    /// 
+    /// This links the given source to the given destination path.
+    @discardableResult
+    public func link(path source: [String], to dest: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .link, path: dest, payload: source)
+    }
+
+    /// Performs an `UNLINK` request to the given paths.
+    /// 
+    /// This unlinks the given source from the given destination path.
+    @discardableResult
+    public func unlink(path source: [String], to dest: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .unlink, path: dest, payload: source)
+    }
+
+    /// Performs a `STOP` request to the given path.
+    ///
+    /// This stops a stream.
+    @discardableResult
+    public func stop(path: [String]) async throws -> ServerMessage<Nil> {
+        try await perform(verb: .stop, path: path)
+    }
 
     /// Performs a one-off request to the lighthouse with an empty payload.
     @discardableResult
