@@ -9,8 +9,6 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          swift: '5.7'
-        - os: ubuntu-latest
           swift: '5.9'
         - os: macos-latest
           swift: '5.9'
