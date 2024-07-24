@@ -65,6 +65,11 @@ public class Lighthouse {
     /// The WebSocket connection.
     private var webSocket: WebSocket?
 
+    /// Instantiates the ``Lighthouse`` wrapper with the given credentials and
+    /// URL.
+    /// 
+    /// Note that this does not initiate a connection yet, clients should call
+    /// ``connect()`` to do this.
     public init(
         authentication: Authentication,
         url: URL = lighthouseUrl
@@ -82,6 +87,8 @@ public class Lighthouse {
     }
 
     /// Connects to the lighthouse.
+    ///
+    /// This uses the previously provided authentication credentials and URL.
     public func connect() async throws {
         let webSocket = try await withCheckedThrowingContinuation { continuation in
             WebSocket.connect(to: url, on: eventLoopGroup) { ws in
