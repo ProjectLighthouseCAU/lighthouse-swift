@@ -3,6 +3,9 @@
 
 import PackageDescription
 
+// Set this to true to use the Starscream-based WebSocket backend on macOS too.
+let forceStarscreamOnMacOS = false
+
 let package = Package(
     name: "lighthouse-swift",
     platforms: [.macOS(.v13), .iOS(.v16)],
@@ -38,8 +41,16 @@ let package = Package(
         .target(
             name: "LighthouseWebSocket",
             dependencies: [
-                .product(name: "WebSocketKit", package: "websocket-kit", condition: .when(platforms: [.android, .linux, .macOS, .openbsd, .wasi, .windows])),
-                .product(name: "Starscream", package: "Starscream", condition: .when(platforms: [.iOS, .macCatalyst, .tvOS, .visionOS, .watchOS])),
+                .product(
+                    name: "WebSocketKit",
+                    package: "websocket-kit",
+                    condition: .when(platforms: [.android, .linux, .openbsd, .wasi, .windows] + (forceStarscreamOnMacOS ? [] : [.macOS]))
+                ),
+                .product(
+                    name: "Starscream",
+                    package: "Starscream",
+                    condition: .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS, .watchOS] + (forceStarscreamOnMacOS ? [.macOS] : []))
+                ),
             ]
         ),
         .target(
