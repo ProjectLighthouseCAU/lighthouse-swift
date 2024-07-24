@@ -7,7 +7,48 @@ import LighthouseProtocol
 
 private let log = Logger(label: "LighthouseClient.Lighthouse")
 
-/// A connection to the lighthouse server.
+// TODO: Properly link protocol types after https://github.com/swiftlang/swift-docc/issues/208
+
+/// A connection to the Project Lighthouse server.
+///
+/// The ``Lighthouse`` class provides a high-level interface around the
+/// WebSocket-based Project Lighthouse API. After connecting, clients can
+/// perform CRUD requests, most notably sending and streaming `Frame`s and
+/// `InputEvent`s.
+///
+/// To connect, provide your credentials by creating a `Authentication`,
+/// instantiate a ``Lighthouse`` and call ``connect()``:
+///
+/// ```swift
+/// let auth = Authentication(username: "your username", token: "your token")
+/// let lh = Lighthouse(authentication: auth)
+///
+/// try await lh.connect()
+/// ```
+///
+/// To stream a resource, such as the user model for input events, use the
+/// corresponding methods, e.g. ``stream(path:payload:)`` or ``streamModel()``:
+/// 
+/// ```swift
+/// Task {
+///     let stream = try await lh.streamModel()
+///     for await message in stream {
+///         if case let .inputEvent(input) = message.payload {
+///             log.info("Got input \(input)")
+///         }
+///     }
+/// }
+/// ```
+///
+/// To send colored frames to the server, use methods such as ``putModel(frame:)``:
+/// 
+/// ```swift
+/// while true {
+///     log.info("Sending frame")
+///     try await lh.putModel(frame: Frame(fill: .random()))
+///     try await Task.sleep(nanoseconds: 1_000_000_000)
+/// }
+/// ```
 public class Lighthouse {
     /// The WebSocket URL of the connected lighthouse server.
     private let url: URL
