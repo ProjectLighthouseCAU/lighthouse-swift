@@ -1,6 +1,9 @@
 #if canImport(Starscream)
 import Foundation
+import Logging
 import Starscream
+
+private let log = Logger(label: "LighthouseWebSocket.StarscreamWebSocket")
 
 public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocketDelegate {
     private var webSocket: Starscream.WebSocket
@@ -13,6 +16,7 @@ public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
     }
     
     public func connect() async throws {
+        log.trace("Connecting")
         try await withCheckedThrowingContinuation { continuation in
             connectHandlers.append(continuation.resume(with:))
             webSocket.connect()
@@ -20,11 +24,17 @@ public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
     }
     
     public func onBinary(_ handler: @escaping (Data) -> Void) throws {
+        log.trace("Adding binary message handler")
         binaryMessageHandlers.append(handler)
     }
     
     public func didReceive(event: WebSocketEvent, client: any WebSocketClient) {
+        log.trace("Received WebSocketEvent \(event)")
         switch event {
+        case .connected(_):
+            while let handler = connectHandlers.popLast() {
+                handler(.success(()))
+            }
         case .error(let error):
             while let handler = connectHandlers.popLast() {
                 handler(.failure(error ?? WebSocketError.unknown))
@@ -39,6 +49,7 @@ public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
     }
     
     public func send(_ data: Data) async throws {
+        log.trace("Sending binary message")
         await withCheckedContinuation { continuation in
             webSocket.write(data: data, completion: continuation.resume)
         }
