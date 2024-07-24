@@ -39,6 +39,11 @@ public struct Frame: Hashable, Codable {
         self.pixels = pixels
     }
 
+    public subscript(_ y: Int, _ x: Int) -> Color {
+        get { pixels[y * lighthouseCols + x] }
+        set { pixels[y * lighthouseCols + x] = newValue }
+    }
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         let data = Data(pixels.flatMap { [$0.red, $0.green, $0.blue] })
