@@ -125,15 +125,48 @@ public class Lighthouse {
         try await perform(verb: .put, path: ["user", authentication.username, "model"], payload: .frame(frame))
     }
 
-    /// Streams the model.
+    /// Streams the current user's model.
     public func streamModel() async throws -> AsyncStream<ServerMessage> {
         try await stream(path: ["user", authentication.username, "model"])
     }
 
-    /// Performs a PUT request to the given path.
+    /// Performs a `POST` request to the given path.
+    ///
+    /// This creates and updates the resource at the given path, effectively
+    /// combining `PUT` and `CREATE`. Requires `CREATE` and `WRITE` permission.
+    public func post(path: [String], payload: Payload = .other) async throws {
+        try await perform(verb: .post, path: path, payload: payload)
+    }
+
+    /// Performs a `PUT` request to the given path.
+    ///
+    /// This updates the resource at the given path with the given payload.
     public func put(path: [String], payload: Payload = .other) async throws {
         try await perform(verb: .put, path: path, payload: payload)
     }
+
+    /// Performs a `CREATE` request to the given path.
+    /// 
+    /// This creates a resource at the given path. Requires `CREATE` permission.
+    public func create(path: [String]) async throws {
+        try await perform(verb: .create, path: path, payload: .other)
+    }
+
+    /// Performs a `DELETE` request to the given path.
+    /// 
+    /// This deletes the resource at the given path. Requires `DELETE` permission.
+    public func delete(path: [String]) async throws {
+        try await perform(verb: .delete, path: path, payload: .other)
+    }
+
+    /// Performs a `MKDIR` request to the given path.
+    /// 
+    /// This creates a directory at the given path. Requires `CREATE` permission.
+    public func mkdir(path: [String]) async throws {
+        try await perform(verb: .mkdir, path: path, payload: .other)
+    }
+
+    // TODO: `LIST`, `GET`, `LINK`, `UNLINK`, `STOP` wrappers
 
     /// Performs a one-off request to the lighthouse.
     @discardableResult
