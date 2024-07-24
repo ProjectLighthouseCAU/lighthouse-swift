@@ -5,7 +5,7 @@ import Starscream
 
 private let log = Logger(label: "LighthouseWebSocket.StarscreamWebSocket")
 
-public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocketDelegate {
+public final actor _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocketDelegate {
     private var webSocket: Starscream.WebSocket
     private var connectHandlers: [(Result<Void, any Error>) -> Void] = []
     private var binaryMessageHandlers: [(Data) -> Void] = []
@@ -28,8 +28,14 @@ public final class _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
         binaryMessageHandlers.append(handler)
     }
     
-    public func didReceive(event: WebSocketEvent, client: any WebSocketClient) {
-        log.trace("Received WebSocketEvent \(event)")
+    public nonisolated func didReceive(event: WebSocketEvent, client: any WebSocketClient) {
+        Task {
+            await handle(event: event)
+        }
+    }
+
+    private func handle(event: WebSocketEvent) {
+        log.trace("Handling WebSocketEvent \(event)")
         switch event {
         case .connected(_):
             while let handler = connectHandlers.popLast() {

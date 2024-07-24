@@ -79,7 +79,7 @@ public class Lighthouse {
     public func connect() async throws {
         try await webSocket.connect()
 
-        try webSocket.onBinary { [unowned self] data in
+        try await webSocket.onBinary { [unowned self] data in
             do {
                 let envelope = try MessagePackDecoder().decode(ServerMessage<Nil>.self, from: data)
                 if let handler = responseHandlers[envelope.requestId] {

@@ -6,7 +6,7 @@ import WebSocketKit
 
 private let log = Logger(label: "LighthouseWebSocket.WebSocketKitWebSocket")
 
-public final class _WebSocketKitWebSocket: WebSocketProtocol {
+public final actor _WebSocketKitWebSocket: WebSocketProtocol {
     private let url: URL
     private var webSocket: WebSocketKit.WebSocket?
 
@@ -35,7 +35,7 @@ public final class _WebSocketKitWebSocket: WebSocketProtocol {
         }
     }
 
-    public func onBinary(_ handler: @escaping (Data) -> Void) throws {
+    public func onBinary(_ handler: @escaping (Data) -> Void) async throws {
         guard let webSocket else { throw WebSocketError.notConnectedYet }
         webSocket.onBinary { (_, buf) in
             var buf = buf
