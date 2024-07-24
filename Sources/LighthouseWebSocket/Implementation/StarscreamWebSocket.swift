@@ -9,6 +9,7 @@ public final actor _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
     private var webSocket: Starscream.WebSocket
     private var connectHandlers: [(Result<Void, any Error>) -> Void] = []
     private var binaryMessageHandlers: [(Data) -> Void] = []
+    private var isSending: Bool = false
     
     public init(url: URL) {
         webSocket = Starscream.WebSocket(request: URLRequest(url: url))
@@ -55,10 +56,18 @@ public final actor _StarscreamWebSocket: WebSocketProtocol, Starscream.WebSocket
     }
     
     public func send(_ data: Data) async throws {
+        // We have to serialize all message sends, for which we need
+        // a flag (actor isolation is not sufficient to due reentrancy).
+        while isSending {
+            try await Task.sleep(for: .milliseconds(2))
+        }
+
+        isSending = true
         log.trace("Sending binary message")
         await withCheckedContinuation { continuation in
             webSocket.write(data: data, completion: continuation.resume)
         }
+        isSending = false
     }
 }
 #endif
