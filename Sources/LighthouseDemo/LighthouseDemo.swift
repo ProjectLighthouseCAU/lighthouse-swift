@@ -44,7 +44,7 @@ struct LighthouseDemo: ParsableCommand {
         while true {
             log.info("Sending frame")
             try await lh.putModel(frame: Frame(fill: .random()))
-            try await Task.sleep(nanoseconds: 1_000_000_000)
+            try await Task.sleep(for: .seconds(1))
         }
     }
 
